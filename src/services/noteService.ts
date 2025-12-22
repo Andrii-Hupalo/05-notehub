@@ -31,11 +31,6 @@ export interface CreateNoteData {
   tag: "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 }
 
-export interface DeleteNoteResponse {
-  id: string;
-  message: string;
-}
-
 export const fetchNotes = async (
   params: FetchNotesParams = {}
 ): Promise<FetchNotesResponse> => {
@@ -56,9 +51,7 @@ export const createNote = async (noteData: CreateNoteData): Promise<Note> => {
   return response.data;
 };
 
-export const deleteNote = async (id: string): Promise<DeleteNoteResponse> => {
-  const response: AxiosResponse<DeleteNoteResponse> = await api.delete(
-    `/notes/${id}`
-  );
+export const deleteNote = async (id: string): Promise<Note> => {
+  const response: AxiosResponse<Note> = await api.delete(`/notes/${id}`);
   return response.data;
 };

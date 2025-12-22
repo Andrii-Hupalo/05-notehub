@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
-import { fetchNotes, deleteNote } from "../../services/noteService";
+import { fetchNotes } from "../../services/noteService";
 import NoteList from "../NoteList/NoteList";
 import SearchBox from "../SearchBox/SearchBox";
 import Pagination from "../Pagination/Pagination";
@@ -13,7 +13,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
-  const queryClient = useQueryClient();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["notes", currentPage, debouncedSearchTerm],
     queryFn: () =>
@@ -22,13 +22,9 @@ export default function App() {
         perPage: 12,
         search: debouncedSearchTerm,
       }),
+    placeholderData: keepPreviousData,
   });
-  const deleteMutation = useMutation({
-    mutationFn: deleteNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
-  });
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
@@ -36,9 +32,7 @@ export default function App() {
   const handlePageChange = (selectedPage: number) => {
     setCurrentPage(selectedPage);
   };
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
-  };
+
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -66,7 +60,7 @@ export default function App() {
       {isError && <p>Error: {error?.message || "Unknown error"}</p>}
 
       {data && data.notes && data.notes.length > 0 && (
-        <NoteList notes={data.notes} onDelete={handleDelete} />
+        <NoteList notes={data.notes} />
       )}
 
       {data && data.notes && data.notes.length === 0 && <p>No notes found</p>}
